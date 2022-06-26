@@ -1,7 +1,5 @@
 from flask import Flask, render_template, request, session, Markup
-from requests import request
-from sympy import re
-
+from models import *
 app = Flask(__name__)
 
 
