@@ -3,6 +3,8 @@ from models import *
 app = Flask(__name__)
 
 
+db.init_app(app)
+
 @app.route("/")
 def hello():
     return render_template('homepage.html')
@@ -134,3 +136,57 @@ def books():
     
     text=Markup(strg)
     return render_template("dashboard.html", text=text)
+
+
+@app.route('/saveUser', methods=['POST'])
+def saveUser():
+  uName = request.form.get('userName')
+  pwd = request.form.get('password')
+  uType = request.form.get('userType')
+  uList = userList(userName=uName,password=pwd,userType=uType)
+  db.session.add(uList)
+  db.session.commit()
+  text = uName+' added Successfully!!'
+  return render_template('dashboard.html', text=text)
+
+#Todo -  Storing Password as string in DB is Bad, we should be using the salting technique for storing the Password!!
+@app.route('/users')
+def users():
+  uList = userList.query.all()
+  tabl = '''<div class="form-group">
+            <table class="table table-bordered border-success" ><TR style="text-weight:bold; background-color:#ccffcc;">
+            <TD>User ID</TD>
+            <TD>User Name </TD>
+            <TD>User Type</TD></TR>'''
+  for item in uList:
+    tabl=tabl+"<TR><TD>"+str(item.userId)+"</TD><TD>"+item.userName+"</TD><TD>"+item.userType+"</TD></TR>"
+  
+  tabl=tabl+"</table></div>"
+  
+  strg='''<h5 style="text-align:center">Add a User</h5>
+          <HR>
+          <form class="row g-3" method="POST" action="/saveUser">
+            <div class="col-md-6">
+              <label for="userName" class="form-label">User Name</label>
+              <input type="text" class="form-control" Name="userName">
+            </div>
+            <div class="col-md-6">
+              <label for="password" class="form-label">password</label>
+              <input type="text" class="form-control" Name="password">
+            </div>
+            <div class="col-md-6">
+              <label for="userType" class="form-label">User Type</label>
+              <div class="form-group">
+                  <select class="form-control" name="userType">
+                    <option value="Admin">Admin</option>
+                    <option value="Member">Member</option>
+                    <option value="Guest">Guest</option>
+                  </select>
+                </div>        
+              </div>
+            <div class="col-12">
+              <button type="submit" class="btn  btn-success mb-3">Save User</button>
+            </div>
+          </FORM>'''+tabl
+  text = Markup(strg)
+  return render_template('dashboard.html', text=text)
